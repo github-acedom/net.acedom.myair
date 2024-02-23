@@ -10,8 +10,9 @@
     "en": "myAir"
   },
   "description": {
-    "en": "support for myAir air con"
+    "en": "Transform your home into an oasis of comfort with the Homey MyAir Control App, your ultimate companion for personalized air conditioning. Designed exclusively for systems equipped with the myAir technology, this app puts unparalleled control of your indoor climate right at your fingertips. Key Features include Zone-Specific Control, Comprehensive Unit Management, Customizable Modes and Fan Speeds, User-Friendly Interface, and Smart Scheduling."
   },
+  "brandColor": "#125eab",
   "category": [
     "climate"
   ],
@@ -21,8 +22,8 @@
   },
   "permissions": [],
   "images": {
-    "small": "/assets/images/aircon.png",
-    "large": "/assets/images/aircon.png",
-    "xlarge": "/assets/images/aircon.png"
+    "small": "/assets/images/s_aircon.png",
+    "large": "/assets/images/l_aircon.png",
+    "xlarge": "/assets/images/xl_aircon.png"
   }
 }

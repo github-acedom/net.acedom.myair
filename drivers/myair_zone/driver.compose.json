@@ -1,6 +1,6 @@
 {
   "name": {
-    "en": "myAir Zone"
+    "en": "myAir Zone Control"
   },
   "class": "thermostat",
   "capabilities": [

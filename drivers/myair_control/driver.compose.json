@@ -1,6 +1,6 @@
 {
   "name": {
-    "en": "myAir Control"
+    "en": "myAir Unit Control"
   },
   "class": "thermostat",
   "capabilities": [
