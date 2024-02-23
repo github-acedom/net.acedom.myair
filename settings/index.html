@@ -6,7 +6,7 @@
 <body>
     <header class="homey-header">
         <h1 class="homey-title" data-i18n="settings.title">MyAir Settings</h1>
-        <p class="homey-subtitle" data-i18n="settings.subtitle">Configure your MyAir device IP address.</p>
+        <p class="homey-subtitle" data-i18n="settings.subtitle">Configure your MyAir device IP address and settings</p>
     </header>
 
     <fieldset class="homey-form-fieldset">
@@ -15,6 +15,15 @@
         <div class="homey-form-group">
             <label class="homey-form-label" for="myAirIp">MyAir IP Address</label>
             <input class="homey-form-input" id="myAirIp" type="text" value="" placeholder="192.168.x.x"/>
+        </div>
+
+        
+    </fieldset>
+    <fieldset class="homey-form-fieldset"></fieldset>
+    <legend class="homey-form-legend">Other Settings</legend>
+        <div class="homey-form-group">
+            <label class="homey-form-label" for="pollingInterval">Polling Interval (seconds) <i>Requires app restart to take effect</i></label>
+            <input class="homey-form-input" id="pollingInterval" type="number" min="60" value="60"/>
         </div>
     </fieldset>
 
@@ -33,12 +42,32 @@
                 myAirIpElement.value = myAirIp || '';
             });
 
+            // Load existing settings
+            Homey.get('pollingInterval', function (err, value) {
+                if (err) return Homey.alert(err);
+                if (value) document.getElementById('pollingInterval').value = value / 1000; // Convert to seconds for display
+            });
+
             // Save the new IP address
             saveElement.addEventListener('click', function () {
                 const newIp = myAirIpElement.value;
                 Homey.set('myAirIp', newIp, function (err) {
                     if (err) return Homey.alert(err);
                     Homey.alert('IP address saved successfully!');
+                });
+            });
+
+            // Save new settings
+            saveElement.addEventListener('click', function () {
+                const pollingIntervalSeconds = parseInt(document.getElementById('pollingInterval').value, 10);
+                const pollingIntervalMillis = pollingIntervalSeconds * 1000; // Convert to milliseconds for storage
+
+                // Ensure the interval is not less than 60 seconds
+                const intervalToSave = pollingIntervalMillis < 60000 ? 60000 : pollingIntervalMillis;
+
+                Homey.set('pollingInterval', intervalToSave, function (err) {
+                    if (err) return Homey.alert(err);
+                    Homey.alert('Settings saved successfully!');
                 });
             });
         }

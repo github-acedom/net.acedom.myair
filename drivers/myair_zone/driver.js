@@ -45,12 +45,23 @@ class MyAirZoneDriver extends Driver {
   async onInit() {
     this.log('MyDriver has been initialized');
 
+    let pollingInterval = await this.homey.settings.get('pollingInterval');
+
+    // If pollingInterval is null or less than 60000 milliseconds, default to 60000 milliseconds
+    if (!pollingInterval || pollingInterval < 60000) {
+      pollingInterval = 60000; // Default to 60 seconds
+      await this.homey.settings.set('pollingInterval', pollingInterval);
+    }
+
+    // Initial delayed poll to avoid immediate polling on app start
     this.homey.setTimeout(async () => {
       await this.pollMyAirData();
     }, 10000); // Delay of 10000 milliseconds (10 seconds)
+
+    // Set up the polling interval
     this.pollInterval = this.homey.setInterval(async () => {
       await this.pollMyAirData();
-    }, 60000); // Poll every 60 seconds
+    }, pollingInterval);
   }
 
   async pollMyAirData() {
