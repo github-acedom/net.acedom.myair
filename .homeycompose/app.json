@@ -1,0 +1,28 @@
+{
+  "id": "net.acedom.myair",
+  "version": "1.0.0",
+  "compatibility": ">=5.0.0",
+  "sdk": 3,
+  "platforms": [
+    "local"
+  ],
+  "name": {
+    "en": "myAir"
+  },
+  "description": {
+    "en": "support for myAir air con"
+  },
+  "category": [
+    "climate"
+  ],
+  "author": {
+    "email": "homey@acedom.net",
+    "name": "Graham Smithers"
+  },
+  "permissions": [],
+  "images": {
+    "small": "/assets/images/aircon.png",
+    "large": "/assets/images/aircon.png",
+    "xlarge": "/assets/images/aircon.png"
+  }
+}

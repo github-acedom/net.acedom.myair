@@ -1,0 +1,44 @@
+{
+  "name": {
+    "en": "myAir Control"
+  },
+  "class": "thermostat",
+  "capabilities": [
+    "onoff",
+    "aircon_mode",
+    "aircon_fan"
+  ],
+  "platforms": [
+    "local"
+  ],
+  "connectivity": [
+    "lan"
+  ],
+  "images": {
+    "small": "{{driverAssetsPath}}/images/aircon_small.png",
+    "large": "{{driverAssetsPath}}/images/aircon_large.png",
+    "xlarge": "{{driverAssetsPath}}/images/aircon_xlarge.png"
+  },
+  "pair": [
+    {
+      "id": "my_view"
+    },
+    {
+      "id": "list_devices",
+      "template": "list_devices",
+      "navigation": {
+        "next": "add_devices"
+      }
+    },
+    {
+      "id": "add_devices",
+      "template": "add_devices"
+    }
+  ],
+  "actions": [
+    {
+      "id": "set_aircon_mode",
+      "title": { "en": "Set AirCon Mode" }
+    }
+  ]
+}

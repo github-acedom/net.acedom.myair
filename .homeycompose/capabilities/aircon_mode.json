@@ -1,0 +1,38 @@
+{
+    "type": "enum",
+    "uiComponent": "picker",
+    "title": {
+        "en": "AirCon Mode"
+    },
+    "desc": {
+        "en": "AirCon Mode"
+    },
+    "values": [
+        {
+            "id": "cool",
+            "title": {
+                "en": "Cool"
+            }
+        },
+        {
+            "id": "heat",
+            "title": {
+                "en": "Heat"
+            }
+        },
+        {
+            "id": "fan",
+            "title": {
+                "en": "Fan"
+            }
+        },
+        {
+            "id": "dry",
+            "title": {
+                "en": "Dry"
+            }
+        }
+    ],
+    "getable": true,
+    "setable": true
+}

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script type="text/javascript" src="/homey.js" data-origin="settings"></script>
+</head>
+<body>
+    <header class="homey-header">
+        <h1 class="homey-title" data-i18n="settings.title">MyAir Settings</h1>
+        <p class="homey-subtitle" data-i18n="settings.subtitle">Configure your MyAir device IP address.</p>
+    </header>
+
+    <fieldset class="homey-form-fieldset">
+        <legend class="homey-form-legend">IP Address Configuration</legend>
+
+        <div class="homey-form-group">
+            <label class="homey-form-label" for="myAirIp">MyAir IP Address</label>
+            <input class="homey-form-input" id="myAirIp" type="text" value="" placeholder="192.168.x.x"/>
+        </div>
+    </fieldset>
+
+    <button id="save" class="homey-button-primary-full">Save changes</button>
+
+    <script type="text/javascript">
+        function onHomeyReady(Homey) {
+            Homey.ready(); // Indicate the settings page is loaded
+
+            const myAirIpElement = document.getElementById('myAirIp');
+            const saveElement = document.getElementById('save');
+
+            // Load the current MyAir IP address setting
+            Homey.get('myAirIp', function (err, myAirIp) {
+                if (err) return Homey.alert(err);
+                myAirIpElement.value = myAirIp || '';
+            });
+
+            // Save the new IP address
+            saveElement.addEventListener('click', function () {
+                const newIp = myAirIpElement.value;
+                Homey.set('myAirIp', newIp, function (err) {
+                    if (err) return Homey.alert(err);
+                    Homey.alert('IP address saved successfully!');
+                });
+            });
+        }
+    </script>
+</body>
+</html>

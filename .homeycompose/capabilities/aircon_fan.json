@@ -1,0 +1,38 @@
+{
+    "type": "enum",
+    "uiComponent": "picker",
+    "title": {
+        "en": "AirCon Fan"
+    },
+    "desc": {
+        "en": "AirCon Fan"
+    },
+    "values": [
+        {
+            "id": "low",
+            "title": {
+                "en": "Low"
+            }
+        },
+        {
+            "id": "medium",
+            "title": {
+                "en": "Medium"
+            }
+        },
+        {
+            "id": "high",
+            "title": {
+                "en": "High"
+            }
+        },
+        {
+            "id": "autoAA",
+            "title": {
+                "en": "myFan"
+            }
+        }
+    ],
+    "getable": true,
+    "setable": true
+}

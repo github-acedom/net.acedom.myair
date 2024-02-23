@@ -1,0 +1,19 @@
+{
+  "title": {
+    "en": "Set aircon mode"
+  },
+  "highlight": true,
+  "args": [
+    {
+      "name": "mode",
+      "type": "dropdown",
+      "filter": "driver_id=myair_control",
+      "values": [
+        {"id": "cool", "label": {"en": "Cool"}},
+        {"id": "heat", "label": {"en": "Heat"}},
+        {"id": "fan", "label": {"en": "Fan"}},
+        {"id": "dry", "label": {"en": "Dry"}}
+      ]
+    }
+  ]
+}
