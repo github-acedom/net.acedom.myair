@@ -26,13 +26,13 @@ class MyAirZoneDriver extends Driver {
             const parsedData = JSON.parse(data);
             resolve(parsedData);
           } catch (error) {
-            error(`Error parsing MyAir data: ${error.message}`);
+            reject(new Error(`Error parsing MyAir data: ${error.message}`));
           }
         });
       });
 
       req.on('error', (error) => {
-        error(`Error fetching MyAir data: ${error.message}`);
+        reject(new Error(`Error fetching MyAir data: ${error.message}`));
       });
 
       req.end();
