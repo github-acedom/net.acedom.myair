@@ -7,5 +7,8 @@
   },
   "1.0.2": {
     "en": "Add poll interval to settings page"
+  },
+  "1.0.3": {
+    "en": "Minor fixes"
   }
 }
