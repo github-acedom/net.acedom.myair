@@ -16,18 +16,23 @@ class MyApp extends Homey.App {
       this.log('Attempting to register setAirconModeAction...');
       const setAirconModeAction = this.homey.flow.getActionCard('set_aircon_mode');
       setAirconModeAction.registerRunListener(async (args, state) => {
+        this.log(`Set aircon mode to ${args.fan_mode}`);
+
+        if (!args.device) {
+          this.log('Device not found');
+          return false; // Ensure there's a device reference
+        }
+
+        // Correctly invoke the method to change the fan speed
         try {
-          // Log the specific mode selected for more informative logging
-          this.log(`Set aircon mode to ${args.mode.id}`);
+          // Directly call the method designed to handle fan speed changes
+          await args.device.onCapabilityMode(args.fan_mode);
 
-          // Example command construction, adjust as needed
-          // const command = `/setAirconMode?mode=${args.mode.id}`;
-          // await sendCommandToMyAir(ipAddress, command, this.log.bind(this));
-
-          return args.device.getCapabilityValue('aircon_mode');
+          this.log(`Aircon mode set to ${args.fan_mode}`);
+          return true; // Success
         } catch (error) {
-          this.log('Error setting aircon mode:', error);
-          return false; // Return false to indicate failure
+          this.log(`Error setting aircon mode: ${error}`);
+          return false; // Indicate failure
         }
       });
       this.log('setAirconModeAction registered successfully.');
