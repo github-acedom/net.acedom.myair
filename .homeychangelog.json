@@ -16,5 +16,8 @@
   },
   "1.0.5": {
     "en": "fix aircon mode not being available in flows"
+  },
+  "1.0.6": {
+    "en": "update to control mode"
   }
 }
