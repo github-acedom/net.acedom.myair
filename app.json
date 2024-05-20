@@ -80,9 +80,13 @@
         "highlight": true,
         "args": [
           {
-            "name": "mode",
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=myair_control"
+          },
+          {
+            "name": "fan_mode",
             "type": "dropdown",
-            "filter": "driver_id=myair_control",
             "values": [
               {
                 "id": "cool",
