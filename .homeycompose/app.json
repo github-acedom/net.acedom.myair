@@ -23,8 +23,8 @@
   "permissions": [],
   "icon": "/assets/images/myair-logo.png",
   "images": {
-    "small": "/assets/images/myair-tablet.jpg",
-    "large": "/assets/images/myair-tablet.jpg",
-    "xlarge": "/assets/images/myair-tablet.jpg"
+    "small": "/assets/images/s_myair-tablet.jpg",
+    "large": "/assets/images/l_myair-tablet.jpg",
+    "xlarge": "/assets/images/xl_myair-tablet.jpg"
   }
 }
