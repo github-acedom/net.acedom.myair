@@ -69,15 +69,17 @@ class MyAirControlDriver extends Driver {
       this.error('Failed to assign mode change trigger card.');
     }
 
+    // Register the run listener for the mode change trigger
     this._modeChangeTrigger.registerRunListener(async (args, state) => {
-      this.error('Validating args... for FlowDeviceTrigger');
-      // args is the user input,
-      // for example { 'location': 'New York' }
-      // state is the parameter passed in trigger()
-      // for example { 'location': 'Amsterdam' }
+      this.log('Validating args and state in run listener...');
 
-      // If true, this flow should run
-      return true;
+      // Only proceed if the state matches the expected args
+      if (args.mode === state.mode) {
+        this.log(`Mode is ${args.mode}. Proceeding with flow logic.`);
+        return true;
+      }
+      this.log(`Mode does not match: args.mode=${args.mode}, state.mode=${state.mode}. Skipping flow logic.`);
+      return false;
     });
 
     this.log('MyDriver has been initialized');
@@ -86,7 +88,7 @@ class MyAirControlDriver extends Driver {
   // Method to trigger the mode change flow
   async triggerModeChange(device, mode) {
     const tokens = { mode };
-    const state = {};
+    const state = { mode };
 
     this.log(`Attempting to trigger mode change flow for device ${device.getName()} with mode: ${mode}`);
     this.log(`Tokens: ${JSON.stringify(tokens)}, State: ${JSON.stringify(state)}`);
@@ -126,8 +128,9 @@ class MyAirControlDriver extends Driver {
             if (currentMode !== newMode) {
               this.log(`Mode has changed from ${currentMode} to ${newMode}. Updating...`);
               await device.setCapabilityValue('aircon_mode', newMode);
+              this.log(`Mode updated to ${newMode}. Preparing to trigger mode changed flow...`);
 
-              // Detailed logging before triggering the flow
+              // Trigger the mode changed flow
               this.log(`Triggering mode change flow for device: ${device.getName()}, Mode: ${newMode}`);
               await this.triggerModeChange(device, newMode);
               this.log(`Mode change flow trigger called for device: ${device.getName()}, Mode: ${newMode}`);
