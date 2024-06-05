@@ -25,5 +25,8 @@
   },
   "1.0.8": {
     "en": "Fixed issue with mode trigger firing for existing and new state"
+  },
+  "1.1.0": {
+    "en": "Update description and images"
   }
 }
