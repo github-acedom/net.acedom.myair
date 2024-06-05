@@ -10,7 +10,7 @@
     "en": "myAir"
   },
   "description": {
-    "en": "Transform your home into an oasis of comfort with the Homey MyAir Control App, your ultimate companion for personalized air conditioning. Designed exclusively for systems equipped with the myAir technology, this app puts unparalleled control of your indoor climate right at your fingertips. Key Features include Zone-Specific Control, Comprehensive Unit Management, Customizable Modes and Fan Speeds, User-Friendly Interface, and Smart Scheduling."
+    "en": "Save energy while keeping everyone comfortable with the Homey MyAir Control App, designed for personalised air conditioning with MyAir technology."
   },
   "brandColor": "#125eab",
   "category": [
@@ -21,9 +21,10 @@
     "name": "Graham Smithers"
   },
   "permissions": [],
+  "icon": "/assets/images/myair-logo.png",
   "images": {
-    "small": "/assets/images/s_aircon.png",
-    "large": "/assets/images/l_aircon.png",
-    "xlarge": "/assets/images/xl_aircon.png"
+    "small": "/assets/images/myair-tablet.jpg",
+    "large": "/assets/images/myair-tablet.jpg",
+    "xlarge": "/assets/images/myair-tablet.jpg"
   }
 }
