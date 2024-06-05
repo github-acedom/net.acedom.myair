@@ -22,5 +22,8 @@
   },
   "1.0.7": {
     "en": "Added trigger for airmode change"
+  },
+  "1.0.8": {
+    "en": "Fixed issue with mode trigger firing for existing and new state"
   }
 }
