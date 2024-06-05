@@ -43,8 +43,6 @@ class MyAirControlDriver extends Driver {
    * onInit is called when the driver is initialized.
    */
   async onInit() {
-    this.log('MyDriver has been initialized');
-
     let pollingInterval = await this.homey.settings.get('pollingInterval');
 
     // If pollingInterval is null or less than 60000 milliseconds, default to 60000 milliseconds
@@ -62,6 +60,43 @@ class MyAirControlDriver extends Driver {
     this.pollInterval = this.homey.setInterval(async () => {
       await this.pollMyAirData();
     }, pollingInterval);
+
+    // Initialize the trigger card for mode change
+    this._modeChangeTrigger = this.homey.flow.getDeviceTriggerCard('mode_changed');
+    if (this._modeChangeTrigger) {
+      this.log('Mode change trigger card successfully assigned.');
+    } else {
+      this.error('Failed to assign mode change trigger card.');
+    }
+
+    this._modeChangeTrigger.registerRunListener(async (args, state) => {
+      this.error('Validating args... for FlowDeviceTrigger');
+      // args is the user input,
+      // for example { 'location': 'New York' }
+      // state is the parameter passed in trigger()
+      // for example { 'location': 'Amsterdam' }
+
+      // If true, this flow should run
+      return true;
+    });
+
+    this.log('MyDriver has been initialized');
+  }
+
+  // Method to trigger the mode change flow
+  async triggerModeChange(device, mode) {
+    const tokens = { mode };
+    const state = {};
+
+    this.log(`Attempting to trigger mode change flow for device ${device.getName()} with mode: ${mode}`);
+    this.log(`Tokens: ${JSON.stringify(tokens)}, State: ${JSON.stringify(state)}`);
+
+    try {
+      await this._modeChangeTrigger.trigger(device, tokens, state);
+      this.log(`Mode change flow successfully triggered for device ${device.getName()} with mode: ${mode}`);
+    } catch (error) {
+      this.error(`Failed to trigger mode change flow for device ${device.getName()} with mode: ${mode}. Error: ${error.message}`);
+    }
   }
 
   async pollMyAirData() {
@@ -83,11 +118,22 @@ class MyAirControlDriver extends Driver {
           // Update device state for the aircon primary unit
           await device.setCapabilityValue('onoff', airconInfo.state === 'on');
 
-          // Update aircon mode
+          // Check and update aircon mode
           if (airconInfo.mode) {
-            // Assuming 'aircon_mode' is the capability name in your device class
-            // and airconInfo.mode contains the mode data in the expected format
-            await device.setCapabilityValue('aircon_mode', airconInfo.mode);
+            const currentMode = device.getCapabilityValue('aircon_mode');
+            const newMode = airconInfo.mode;
+            this.log(`Current mode: ${currentMode}, New mode: ${newMode}`);
+            if (currentMode !== newMode) {
+              this.log(`Mode has changed from ${currentMode} to ${newMode}. Updating...`);
+              await device.setCapabilityValue('aircon_mode', newMode);
+
+              // Detailed logging before triggering the flow
+              this.log(`Triggering mode change flow for device: ${device.getName()}, Mode: ${newMode}`);
+              await this.triggerModeChange(device, newMode);
+              this.log(`Mode change flow trigger called for device: ${device.getName()}, Mode: ${newMode}`);
+            } else {
+              this.log('Mode has not changed. No update necessary.');
+            }
           }
 
           // Update fan speed

@@ -1,0 +1,23 @@
+{
+    "title": { "en": "Mode has changed to..." },
+    "titleFormatted": { "en": "Mode has changed to [[mode]]" },
+    "args": [
+      {
+        "name": "device",
+        "type": "device",
+        "filter": "driver_id=myair_control"
+      },
+      {
+        "type": "dropdown",
+        "name": "mode",
+        "title": { "en": "Mode" },
+        "values": [
+          { "id": "cool", "title": { "en": "Cool" } },
+          { "id": "heat", "title": { "en": "Heat" } },
+          { "id": "fan", "title": { "en": "Fan" } },
+          { "id": "dry", "title": { "en": "Dry" } }
+        ]
+      }
+    ]
+  }
+  
