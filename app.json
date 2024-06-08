@@ -11,7 +11,7 @@
     "en": "myAir"
   },
   "description": {
-    "en": "Save energy while keeping everyone comfortable with the Homey MyAir Control App, designed for personalised air conditioning with MyAir technology."
+    "en": "Save energy while keeping everyone comfortable."
   },
   "brandColor": "#125eab",
   "category": [
@@ -189,9 +189,9 @@
         "lan"
       ],
       "images": {
-        "small": "/drivers/myair_control/assets/images/aircon_small.png",
-        "large": "/drivers/myair_control/assets/images/aircon_large.png",
-        "xlarge": "/drivers/myair_control/assets/images/aircon_xlarge.png"
+        "small": "/drivers/myair_control/assets/images/aircon_small.jpg",
+        "large": "/drivers/myair_control/assets/images/aircon_large.jpg",
+        "xlarge": "/drivers/myair_control/assets/images/aircon_xlarge.jpg"
       },
       "pair": [
         {

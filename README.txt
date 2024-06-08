@@ -1,1 +1,1 @@
-support for myAir air con
+Transform your home into an oasis of comfort with the myAir Control App, your ultimate companion for personalized air conditioning. Designed exclusively for systems equipped with the myAir technology, this app puts unparalleled control of your indoor climate right at your fingertips. Key Features include Zone-Specific Control, Comprehensive Unit Management, Customizable Modes and Fan Speeds.
