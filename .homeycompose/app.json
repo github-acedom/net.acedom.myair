@@ -27,5 +27,8 @@
     "large": "/assets/images/l_myair-tablet.jpg",
     "xlarge": "/assets/images/xl_myair-tablet.jpg"
   },
-  "support": "https://community.homey.app/t/app-pro-myair/112114"
+  "support": "https://community.homey.app/t/app-pro-myair/112114",
+  "bugs": {
+    "url": "https://github.com/github-acedom/net.acedom.myair/issues"
+  }
 }
