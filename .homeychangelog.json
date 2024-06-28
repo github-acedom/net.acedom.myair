@@ -31,5 +31,8 @@
   },
   "1.1.1": {
     "en": "Image and description updates"
+  },
+  "1.1.2": {
+    "en": "added support url"
   }
 }
