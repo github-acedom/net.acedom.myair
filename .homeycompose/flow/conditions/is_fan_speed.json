@@ -1,0 +1,22 @@
+{
+  "title": {"en": "Fan speed is"},
+  "titleFormatted": {"en": "Fan speed is [[speed]]"},
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=myair_control"
+    },
+    {
+      "name": "speed",
+      "type": "dropdown",
+      "title": {"en": "Fan Speed"},
+      "values": [
+        {"id": "low", "title": {"en": "Low"}},
+        {"id": "medium", "title": {"en": "Medium"}},
+        {"id": "high", "title": {"en": "High"}},
+        {"id": "auto", "title": {"en": "Auto"}}
+      ]
+    }
+  ]
+}

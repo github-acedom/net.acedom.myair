@@ -82,6 +82,30 @@ class MyAirControlDriver extends Driver {
       return false;
     });
 
+    // Initialize condition card for checking current mode
+    this._modeIsCondition = this.homey.flow.getConditionCard('is_aircon_mode');
+    if (this._modeIsCondition) {
+      this._modeIsCondition.registerRunListener(async (args) => {
+        const currentMode = args.device.getCapabilityValue('aircon_mode');
+        this.log(`Checking if current mode (${currentMode}) equals ${args.mode}`);
+        return currentMode === args.mode;
+      });
+    } else {
+      this.error('Failed to assign mode condition card.');
+    }
+
+    // Initialize condition card for checking current fan speed
+    this._fanSpeedIsCondition = this.homey.flow.getConditionCard('is_fan_speed');
+    if (this._fanSpeedIsCondition) {
+      this._fanSpeedIsCondition.registerRunListener(async (args) => {
+        const currentFan = args.device.getCapabilityValue('aircon_fan');
+        this.log(`Checking if current fan speed (${currentFan}) equals ${args.fan}`);
+        return currentFan === args.fan;
+      });
+    } else {
+      this.error('Failed to assign fan speed condition card.');
+    }
+
     this.log('MyDriver has been initialized');
   }
 

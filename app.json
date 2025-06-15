@@ -84,6 +84,106 @@
         "id": "mode_changed"
       }
     ],
+    "conditions": [
+      {
+        "title": {
+          "en": "Aircon mode is"
+        },
+        "titleFormatted": {
+          "en": "Aircon mode is [[mode]]"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=myair_control"
+          },
+          {
+            "name": "mode",
+            "type": "dropdown",
+            "title": {
+              "en": "Mode"
+            },
+            "values": [
+              {
+                "id": "cool",
+                "title": {
+                  "en": "Cool"
+                }
+              },
+              {
+                "id": "heat",
+                "title": {
+                  "en": "Heat"
+                }
+              },
+              {
+                "id": "fan",
+                "title": {
+                  "en": "Fan"
+                }
+              },
+              {
+                "id": "dry",
+                "title": {
+                  "en": "Dry"
+                }
+              }
+            ]
+          }
+        ],
+        "id": "is_aircon_mode"
+      },
+      {
+        "title": {
+          "en": "Fan speed is"
+        },
+        "titleFormatted": {
+          "en": "Fan speed is [[speed]]"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=myair_control"
+          },
+          {
+            "name": "speed",
+            "type": "dropdown",
+            "title": {
+              "en": "Fan Speed"
+            },
+            "values": [
+              {
+                "id": "low",
+                "title": {
+                  "en": "Low"
+                }
+              },
+              {
+                "id": "medium",
+                "title": {
+                  "en": "Medium"
+                }
+              },
+              {
+                "id": "high",
+                "title": {
+                  "en": "High"
+                }
+              },
+              {
+                "id": "auto",
+                "title": {
+                  "en": "Auto"
+                }
+              }
+            ]
+          }
+        ],
+        "id": "is_fan_speed"
+      }
+    ],
     "actions": [
       {
         "title": {
@@ -154,13 +254,15 @@
                 "id": "heat",
                 "label": {
                   "en": "Heat"
-                }
+                },
+                "condition": "capabilities.includes('target_temperature')"
               },
               {
                 "id": "fan",
                 "label": {
                   "en": "Fan"
-                }
+                },
+                "condition": "capabilities.includes('fan_mode')"
               },
               {
                 "id": "dry",
