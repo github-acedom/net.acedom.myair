@@ -40,5 +40,8 @@
   },
   "1.1.4": {
     "en": "Now supports conditions on Aircon Mode and Fan"
+  },
+  "1.1.5": {
+    "en": "bump dependencies to address security vulnerabilities"
   }
 }
