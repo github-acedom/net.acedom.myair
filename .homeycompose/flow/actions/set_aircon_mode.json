@@ -15,6 +15,7 @@
     {
       "name": "fan_mode",
       "type": "dropdown",
+      "title": { "en": "Mode" },
       "values": [
         {"id": "cool", "label": {"en": "Cool"}},
         {"id": "heat", "label": {"en": "Heat"}},
