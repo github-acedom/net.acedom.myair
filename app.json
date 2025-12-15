@@ -189,16 +189,25 @@
         "title": {
           "en": "Set aircon fan speed"
         },
+        "titleFormatted": {
+          "en": "Set aircon fan speed to [[fan_speed]]"
+        },
         "highlight": true,
         "args": [
           {
             "name": "device",
             "type": "device",
-            "filter": "driver_id=myair_control"
+            "filter": "driver_id=myair_control",
+            "title": {
+              "en": "Device"
+            }
           },
           {
             "name": "fan_speed",
             "type": "dropdown",
+            "title": {
+              "en": "Fan Speed"
+            },
             "values": [
               {
                 "id": "low",
@@ -232,6 +241,9 @@
       {
         "title": {
           "en": "Set aircon mode"
+        },
+        "titleFormatted": {
+          "en": "Set aircon mode to [[fan_mode]]"
         },
         "highlight": true,
         "args": [
