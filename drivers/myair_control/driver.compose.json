@@ -39,6 +39,10 @@
     {
       "id": "set_aircon_mode",
       "title": { "en": "Set AirCon Mode" }
+    },
+    {
+      "id": "set_aircon_fan",
+      "title": { "en": "Set AirCon Fan Speed" }
     }
   ]
 }

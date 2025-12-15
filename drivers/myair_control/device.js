@@ -15,18 +15,20 @@ class MyAirControlDevice extends Device {
     this.log('Name:', this.getName());
     this.log('Class:', this.getClass());
 
-    if (this.hasCapability('aircon_fan') === false) {
-      this.log('adding cap aircon_fan');
-      // You need to check if migration is needed
-      // do not call addCapability on every init!
-      await this.addCapability('aircon_fan');
-    }
+    // Add missing capabilities once, guarded to avoid repeated adds
+    try {
+      if (this.hasCapability('aircon_fan') === false) {
+        this.log('adding cap aircon_fan');
+        await this.addCapability('aircon_fan');
+      }
 
-    if (this.hasCapability('aircon_mode') === false) {
-      this.log('adding cap aircon_mode');
-      // You need to check if migration is needed
-      // do not call addCapability on every init!
-      await this.addCapability('aircon_mode');
+      if (this.hasCapability('aircon_mode') === false) {
+        this.log('adding cap aircon_mode');
+        await this.addCapability('aircon_mode');
+      }
+    } catch (err) {
+      this.error('Failed to add capability:', err && err.message ? err.message : err);
+      return; // Do not continue registration if capabilities failed to add
     }
 
     // register a capability listener
@@ -113,7 +115,7 @@ class MyAirControlDevice extends Device {
       await sendCommandToMyAir(ipAddress, command, this.log.bind(this));
       this.log(`Set aircon mode to ${mode}`);
     } catch (error) {
-      this.error('Failed to set aircon mode:', error);
+      this.error('Failed to set aircon mode:', error && error.message ? error.message : error);
       throw new Error('Changing the aircon mode failed!');
     }
   }
@@ -129,6 +131,8 @@ class MyAirControlDevice extends Device {
     // You may need to adjust the logic based on the actual expected input and your aircon's supported fan modes
     let fanMode;
     switch (value) {
+      case 'auto':
+      case 'autoAA':
       case 'myFan':
         fanMode = 'autoAA'; // Assuming 'autoAA' is a valid mode for your aircon
         break;
@@ -164,7 +168,7 @@ class MyAirControlDevice extends Device {
       await sendCommandToMyAir(ipAddress, command, this.log.bind(this));
       this.log(`Set aircon fan mode to ${fanMode}`);
     } catch (error) {
-      this.error('Failed to set aircon fan mode:', error);
+      this.error('Failed to set aircon fan mode:', error && error.message ? error.message : error);
       throw new Error('Changing the aircon fan mode failed!');
     }
   }
@@ -192,7 +196,7 @@ class MyAirControlDevice extends Device {
       await sendCommandToMyAir(ipAddress, command, this.log.bind(this));
       this.log(`Set aircon state to ${value ? 'on' : 'off'}`);
     } catch (error) {
-      this.error('Failed to set aircon state:', error);
+      this.error('Failed to set aircon state:', error && error.message ? error.message : error);
       throw new Error('Switching the aircon state failed!');
     }
   }
