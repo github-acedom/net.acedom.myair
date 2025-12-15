@@ -38,6 +38,7 @@ class MyAirControlDriver extends Driver {
           } catch (error) {
             reject(new Error(`Error parsing MyAir data: ${error.message}`));
           }
+          return undefined;
         });
       });
 
@@ -50,6 +51,7 @@ class MyAirControlDriver extends Driver {
       });
 
       req.end();
+      return undefined;
     });
   }
 
