@@ -43,5 +43,8 @@
   },
   "1.1.5": {
     "en": "bump dependencies to address security vulnerabilities"
+  },
+  "1.2.0": {
+    "en": "Minor updates and fixes"
   }
 }
