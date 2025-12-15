@@ -219,9 +219,9 @@
                 }
               },
               {
-                "id": "myFan",
+                "id": "auto",
                 "label": {
-                  "en": "myFan"
+                  "en": "Auto"
                 }
               }
             ]
@@ -319,6 +319,12 @@
           "title": {
             "en": "Set AirCon Mode"
           }
+        },
+        {
+          "id": "set_aircon_fan",
+          "title": {
+            "en": "Set AirCon Fan Speed"
+          }
         }
       ],
       "id": "myair_control"
@@ -396,7 +402,7 @@
         {
           "id": "autoAA",
           "title": {
-            "en": "myFan"
+            "en": "Auto"
           }
         }
       ],

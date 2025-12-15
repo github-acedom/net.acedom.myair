@@ -6,12 +6,17 @@ const http = require('http');
 class MyAirControlDriver extends Driver {
 
   async fetchMyAirData(ipAddress) {
+    const timeout = this.requestTimeout || 5000;
     return new Promise((resolve, reject) => {
+      if (!ipAddress) {
+        return reject(new Error('MyAir IP address is not configured'));
+      }
       const options = {
         hostname: ipAddress,
         port: 2025,
         path: '/getSystemData',
         method: 'GET',
+        timeout, // fail fast if the controller is unreachable
       };
 
       const req = http.request(options, (res) => {
@@ -23,6 +28,11 @@ class MyAirControlDriver extends Driver {
 
         res.on('end', () => {
           try {
+            if (res.statusCode < 200 || res.statusCode >= 300) {
+              const snippet = data ? ` Body: ${data.slice(0, 200)}` : '';
+              this.error(`MyAir responded with status ${res.statusCode}.${snippet}`);
+              return reject(new Error(`MyAir responded with status ${res.statusCode}`));
+            }
             const parsedData = JSON.parse(data);
             resolve(parsedData);
           } catch (error) {
@@ -35,6 +45,10 @@ class MyAirControlDriver extends Driver {
         reject(new Error(`Error fetching MyAir data: ${error.message}`));
       });
 
+      req.on('timeout', () => {
+        req.destroy(new Error('MyAir data request timed out'));
+      });
+
       req.end();
     });
   }
@@ -44,12 +58,22 @@ class MyAirControlDriver extends Driver {
    */
   async onInit() {
     let pollingInterval = await this.homey.settings.get('pollingInterval');
+    let requestTimeout = await this.homey.settings.get('requestTimeout');
 
     // If pollingInterval is null or less than 60000 milliseconds, default to 60000 milliseconds
     if (!pollingInterval || pollingInterval < 60000) {
       pollingInterval = 60000; // Default to 60 seconds
       await this.homey.settings.set('pollingInterval', pollingInterval);
     }
+
+    // If requestTimeout is null or less than 1000 milliseconds, default to 5000 milliseconds
+    if (!requestTimeout || requestTimeout < 1000) {
+      requestTimeout = 5000; // Default to 5 seconds
+      await this.homey.settings.set('requestTimeout', requestTimeout);
+    }
+
+    // Cache request timeout for all calls
+    this.requestTimeout = requestTimeout;
 
     // Initial delayed poll to avoid immediate polling on app start
     this.homey.setTimeout(async () => {
@@ -99,14 +123,24 @@ class MyAirControlDriver extends Driver {
     if (this._fanSpeedIsCondition) {
       this._fanSpeedIsCondition.registerRunListener(async (args) => {
         const currentFan = args.device.getCapabilityValue('aircon_fan');
-        this.log(`Checking if current fan speed (${currentFan}) equals ${args.fan}`);
-        return currentFan === args.fan;
+        // Map UI dropdown value to capability value; UI exposes "auto" while capability uses "autoAA"
+        const expectedFan = args.speed === 'auto' ? 'autoAA' : args.speed;
+        this.log(`Checking if current fan speed (${currentFan}) equals ${expectedFan}`);
+        return currentFan === expectedFan;
       });
     } else {
       this.error('Failed to assign fan speed condition card.');
     }
 
     this.log('MyDriver has been initialized');
+  }
+
+  async onUninit() {
+    if (this.pollInterval) {
+      this.homey.clearInterval(this.pollInterval);
+      this.pollInterval = null;
+      this.log('Cleared MyAir polling interval on driver unload');
+    }
   }
 
   // Method to trigger the mode change flow
@@ -135,6 +169,10 @@ class MyAirControlDriver extends Driver {
       }
 
       const ipAddress = this.homey.settings.get('myAirIp');
+      if (!ipAddress) {
+        this.log('MyAir IP address not configured; skipping poll.');
+        return;
+      }
       const data = await this.fetchMyAirData(ipAddress);
 
       if (data && data.aircons && data.aircons.ac1 && data.aircons.ac1.info) {
@@ -165,10 +203,12 @@ class MyAirControlDriver extends Driver {
 
           // Update fan speed
           if (airconInfo.fan) {
+            // Map API value to capability value; API may return "auto" while capability stores "autoAA"
+            const fanValue = airconInfo.fan === 'auto' ? 'autoAA' : airconInfo.fan;
             // Assuming 'aircon_fan' is the capability name in your device class
             // and airconInfo.fan contains the fan speed data in the expected format
             // You might need to map airconInfo.fan values to your defined 'aircon_fan' capability values if they differ
-            await device.setCapabilityValue('aircon_fan', airconInfo.fan);
+            await device.setCapabilityValue('aircon_fan', fanValue);
           }
 
           // Include any other capabilities you need to update, like target_temperature

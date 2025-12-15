@@ -25,6 +25,10 @@
             <label class="homey-form-label" for="pollingInterval">Polling Interval (seconds) <i>Requires app restart to take effect</i></label>
             <input class="homey-form-input" id="pollingInterval" type="number" min="60" value="60"/>
         </div>
+        <div class="homey-form-group">
+            <label class="homey-form-label" for="requestTimeout">Request Timeout (seconds) <i>Requires app restart to take effect</i></label>
+            <input class="homey-form-input" id="requestTimeout" type="number" min="1" value="5"/>
+        </div>
     </fieldset>
 
     <button id="save" class="homey-button-primary-full">Save changes</button>
@@ -34,6 +38,8 @@
             Homey.ready(); // Indicate the settings page is loaded
 
             const myAirIpElement = document.getElementById('myAirIp');
+            const pollingIntervalElement = document.getElementById('pollingInterval');
+            const requestTimeoutElement = document.getElementById('requestTimeout');
             const saveElement = document.getElementById('save');
 
             // Load the current MyAir IP address setting
@@ -45,29 +51,43 @@
             // Load existing settings
             Homey.get('pollingInterval', function (err, value) {
                 if (err) return Homey.alert(err);
-                if (value) document.getElementById('pollingInterval').value = value / 1000; // Convert to seconds for display
+                if (value) pollingIntervalElement.value = value / 1000; // Convert to seconds for display
             });
 
-            // Save the new IP address
+            Homey.get('requestTimeout', function (err, value) {
+                if (err) return Homey.alert(err);
+                if (value) requestTimeoutElement.value = value / 1000; // Convert to seconds for display
+            });
+
+            // Save settings in one handler
             saveElement.addEventListener('click', function () {
-                const newIp = myAirIpElement.value;
+                const newIp = myAirIpElement.value.trim();
+                const ipRegex = /^(\\d{1,3}\\.){3}\\d{1,3}$/;
+                if (!newIp || !ipRegex.test(newIp)) {
+                    return Homey.alert('Please enter a valid IP address.');
+                }
+
+                const pollingIntervalSeconds = parseInt(pollingIntervalElement.value, 10);
+                const pollingIntervalMillis = pollingIntervalSeconds * 1000; // Convert to milliseconds for storage
+                // Ensure the interval is not less than 60 seconds
+                const intervalToSave = isNaN(pollingIntervalMillis) || pollingIntervalMillis < 60000 ? 60000 : pollingIntervalMillis;
+
+                const requestTimeoutSeconds = parseInt(requestTimeoutElement.value, 10);
+                const requestTimeoutMillis = requestTimeoutSeconds * 1000; // Convert to milliseconds for storage
+                // Ensure the timeout is not less than 1 second
+                const timeoutToSave = isNaN(requestTimeoutMillis) || requestTimeoutMillis < 1000 ? 1000 : requestTimeoutMillis;
+
                 Homey.set('myAirIp', newIp, function (err) {
                     if (err) return Homey.alert(err);
-                    Homey.alert('IP address saved successfully!');
-                });
-            });
 
-            // Save new settings
-            saveElement.addEventListener('click', function () {
-                const pollingIntervalSeconds = parseInt(document.getElementById('pollingInterval').value, 10);
-                const pollingIntervalMillis = pollingIntervalSeconds * 1000; // Convert to milliseconds for storage
+                    Homey.set('pollingInterval', intervalToSave, function (err) {
+                        if (err) return Homey.alert(err);
 
-                // Ensure the interval is not less than 60 seconds
-                const intervalToSave = pollingIntervalMillis < 60000 ? 60000 : pollingIntervalMillis;
-
-                Homey.set('pollingInterval', intervalToSave, function (err) {
-                    if (err) return Homey.alert(err);
-                    Homey.alert('Settings saved successfully!');
+                        Homey.set('requestTimeout', timeoutToSave, function (err) {
+                            if (err) return Homey.alert(err);
+                            Homey.alert('Settings saved successfully! (Restart app to apply timing changes)');
+                        });
+                    });
                 });
             });
         }

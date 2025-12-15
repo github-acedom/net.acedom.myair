@@ -16,7 +16,7 @@
         {"id": "low", "label": {"en": "Low"}},
         {"id": "medium", "label": {"en": "Medium"}},
         {"id": "high", "label": {"en": "High"}},
-        {"id": "myFan", "label": {"en": "myFan"}}
+        {"id": "auto", "label": {"en": "Auto"}}
       ]
     }
   ]
