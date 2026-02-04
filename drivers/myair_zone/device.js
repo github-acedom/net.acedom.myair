@@ -70,6 +70,7 @@ class MyAirZoneDevice extends Device {
     const deviceData = this.getData();
     const zoneId = deviceData.id;
     const ipAddress = this.homey.settings.get('myAirIp');
+    const previousTemperature = this.getCapabilityValue('target_temperature');
 
     // Construct the command for setting the temperature
     const jsonCommand = JSON.stringify({
@@ -88,6 +89,10 @@ class MyAirZoneDevice extends Device {
     try {
       await sendCommandToMyAir(ipAddress, command, this.log.bind(this));
       this.log(`Set target temperature for zone ${zoneId} to ${value}`);
+      const driver = this.homey.drivers.getDriver('myair_zone');
+      if (driver && driver.triggerTargetTemperatureChange) {
+        await driver.triggerTargetTemperatureChange(this, value, previousTemperature);
+      }
     } catch (error) {
       this.error('Failed to set target temperature:', error);
       throw new Error('Setting the target temperature failed!');
