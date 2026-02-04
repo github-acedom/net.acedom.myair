@@ -82,6 +82,40 @@
           }
         ],
         "id": "mode_changed"
+      },
+      {
+        "title": {
+          "en": "Target temperature changed"
+        },
+        "titleFormatted": {
+          "en": "Target temperature changed"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=myair_zone"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "temperature",
+            "type": "number",
+            "title": {
+              "en": "Target temperature"
+            },
+            "units": "C"
+          },
+          {
+            "name": "previous_temperature",
+            "type": "number",
+            "title": {
+              "en": "Previous target temperature"
+            },
+            "units": "C"
+          }
+        ],
+        "id": "target_temperature_changed"
       }
     ],
     "conditions": [

@@ -62,6 +62,37 @@ class MyAirZoneDriver extends Driver {
     this.pollInterval = this.homey.setInterval(async () => {
       await this.pollMyAirData();
     }, pollingInterval);
+
+    // Initialize the trigger card for target temperature change
+    this._targetTemperatureChangeTrigger = this.homey.flow.getDeviceTriggerCard('target_temperature_changed');
+    if (this._targetTemperatureChangeTrigger) {
+      this.log('Target temperature change trigger card successfully assigned.');
+    } else {
+      this.error('Failed to assign target temperature change trigger card.');
+    }
+  }
+
+  async triggerTargetTemperatureChange(device, temperature, previousTemperature) {
+    if (!this._targetTemperatureChangeTrigger) {
+      return;
+    }
+
+    const tokens = { temperature };
+    if (Number.isFinite(previousTemperature)) {
+      tokens.previous_temperature = previousTemperature;
+    }
+
+    const state = {
+      temperature,
+      previous_temperature: previousTemperature,
+    };
+
+    this.log(`Triggering target temperature change for ${device.getName()} to ${temperature}`);
+    try {
+      await this._targetTemperatureChangeTrigger.trigger(device, tokens, state);
+    } catch (error) {
+      this.error(`Failed to trigger target temperature change for ${device.getName()}: ${error.message}`);
+    }
   }
 
   async pollMyAirData() {
@@ -91,7 +122,13 @@ class MyAirZoneDriver extends Driver {
             this.log('Updating device state for:', zoneId);
             // Update device state
             await device.setCapabilityValue('onoff', zoneInfo.state === 'open');
-            await device.setCapabilityValue('target_temperature', zoneInfo.setTemp);
+            const currentTarget = device.getCapabilityValue('target_temperature');
+            const nextTarget = Number.parseFloat(zoneInfo.setTemp);
+            const resolvedTarget = Number.isFinite(nextTarget) ? nextTarget : zoneInfo.setTemp;
+            if (currentTarget !== resolvedTarget) {
+              await device.setCapabilityValue('target_temperature', resolvedTarget);
+              await this.triggerTargetTemperatureChange(device, resolvedTarget, currentTarget);
+            }
             await device.setCapabilityValue('measure_temperature', zoneInfo.measuredTemp);
             await device.setCapabilityValue('measure_ventopen', zoneInfo.value);
           }
