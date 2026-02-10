@@ -72,26 +72,45 @@ class MyAirZoneDriver extends Driver {
     }
   }
 
-  async triggerTargetTemperatureChange(device, temperature, previousTemperature) {
+  async triggerTargetTemperatureChange(device, temperature, previousTemperature, source) {
     if (!this._targetTemperatureChangeTrigger) {
+      this._targetTemperatureChangeTrigger = this.homey.flow.getDeviceTriggerCard('target_temperature_changed');
+    }
+
+    if (!this._targetTemperatureChangeTrigger) {
+      this.error('Target temperature change trigger card is unavailable.');
       return;
     }
 
-    const tokens = { temperature };
+    const normalizedSource = source || 'unknown';
+    const baseTokens = { temperature };
+    if (Number.isFinite(previousTemperature)) {
+      baseTokens.previous_temperature = previousTemperature;
+    }
+    const tokens = {
+      temperature: baseTokens.temperature,
+      source: normalizedSource,
+    };
     if (Number.isFinite(previousTemperature)) {
       tokens.previous_temperature = previousTemperature;
     }
-
     const state = {
       temperature,
       previous_temperature: previousTemperature,
+      source: normalizedSource,
     };
 
-    this.log(`Triggering target temperature change for ${device.getName()} to ${temperature}`);
+    this.log(`Triggering target temperature change for ${device.getName()} to ${temperature} (source=${normalizedSource})`);
     try {
       await this._targetTemperatureChangeTrigger.trigger(device, tokens, state);
     } catch (error) {
-      this.error(`Failed to trigger target temperature change for ${device.getName()}: ${error.message}`);
+      this.error(`Failed to trigger target temperature change with source token for ${device.getName()}: ${error.message}`);
+      try {
+        await this._targetTemperatureChangeTrigger.trigger(device, baseTokens, state);
+        this.log(`Triggered target temperature change for ${device.getName()} without source token fallback.`);
+      } catch (fallbackError) {
+        this.error(`Failed fallback trigger for ${device.getName()}: ${fallbackError.message}`);
+      }
     }
   }
 
@@ -127,7 +146,7 @@ class MyAirZoneDriver extends Driver {
             const resolvedTarget = Number.isFinite(nextTarget) ? nextTarget : zoneInfo.setTemp;
             if (currentTarget !== resolvedTarget) {
               await device.setCapabilityValue('target_temperature', resolvedTarget);
-              await this.triggerTargetTemperatureChange(device, resolvedTarget, currentTarget);
+              await this.triggerTargetTemperatureChange(device, resolvedTarget, currentTarget, 'myair');
             }
             await device.setCapabilityValue('measure_temperature', zoneInfo.measuredTemp);
             await device.setCapabilityValue('measure_ventopen', zoneInfo.value);

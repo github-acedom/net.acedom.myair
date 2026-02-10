@@ -28,6 +28,13 @@
         "en": "Previous target temperature"
       },
       "units": "C"
+    },
+    {
+      "name": "source",
+      "type": "string",
+      "title": {
+        "en": "Source"
+      }
     }
   ]
 }
