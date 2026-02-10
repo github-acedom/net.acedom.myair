@@ -113,6 +113,13 @@
               "en": "Previous target temperature"
             },
             "units": "C"
+          },
+          {
+            "name": "source",
+            "type": "string",
+            "title": {
+              "en": "Source"
+            }
           }
         ],
         "id": "target_temperature_changed"
