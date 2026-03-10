@@ -5,6 +5,14 @@ const http = require('http');
 
 class MyAirControlDriver extends Driver {
 
+  mapMyAirModeToCapability(mode) {
+    if (mode === 'vent') {
+      return 'fan';
+    }
+
+    return mode;
+  }
+
   async fetchMyAirData(ipAddress) {
     const timeout = this.requestTimeout || 5000;
     return new Promise((resolve, reject) => {
@@ -187,8 +195,8 @@ class MyAirControlDriver extends Driver {
           // Check and update aircon mode
           if (airconInfo.mode) {
             const currentMode = device.getCapabilityValue('aircon_mode');
-            const newMode = airconInfo.mode;
-            this.log(`Current mode: ${currentMode}, New mode: ${newMode}`);
+            const newMode = this.mapMyAirModeToCapability(airconInfo.mode);
+            this.log(`Current mode: ${currentMode}, API mode: ${airconInfo.mode}, New mode: ${newMode}`);
             if (currentMode !== newMode) {
               this.log(`Mode has changed from ${currentMode} to ${newMode}. Updating...`);
               await device.setCapabilityValue('aircon_mode', newMode);

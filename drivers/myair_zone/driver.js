@@ -6,12 +6,23 @@ const http = require('http');
 class MyAirZoneDriver extends Driver {
 
   async fetchMyAirData(ipAddress) {
-    return new Promise((resolve, reject) => {
+    const timeout = this.requestTimeout || 5000;
+    if (!ipAddress) {
+      throw new Error('MyAir IP address is not configured');
+    }
+
+    // Multiple zone devices can call this during startup; share one in-flight request.
+    if (this._inFlightFetch && this._inFlightFetch.ipAddress === ipAddress) {
+      return this._inFlightFetch.promise;
+    }
+
+    const fetchPromise = new Promise((resolve, reject) => {
       const options = {
         hostname: ipAddress,
         port: 2025,
         path: '/getSystemData',
         method: 'GET',
+        timeout,
       };
 
       const req = http.request(options, (res) => {
@@ -23,11 +34,17 @@ class MyAirZoneDriver extends Driver {
 
         res.on('end', () => {
           try {
+            if (res.statusCode < 200 || res.statusCode >= 300) {
+              const snippet = data ? ` Body: ${data.slice(0, 200)}` : '';
+              this.error(`MyAir responded with status ${res.statusCode}.${snippet}`);
+              return reject(new Error(`MyAir responded with status ${res.statusCode}`));
+            }
             const parsedData = JSON.parse(data);
             resolve(parsedData);
           } catch (error) {
             reject(new Error(`Error parsing MyAir data: ${error.message}`));
           }
+          return undefined;
         });
       });
 
@@ -35,8 +52,25 @@ class MyAirZoneDriver extends Driver {
         reject(new Error(`Error fetching MyAir data: ${error.message}`));
       });
 
+      req.on('timeout', () => {
+        req.destroy(new Error('MyAir data request timed out'));
+      });
+
       req.end();
     });
+
+    this._inFlightFetch = {
+      ipAddress,
+      promise: fetchPromise,
+    };
+
+    try {
+      return await fetchPromise;
+    } finally {
+      if (this._inFlightFetch && this._inFlightFetch.promise === fetchPromise) {
+        this._inFlightFetch = null;
+      }
+    }
   }
 
   /**
@@ -46,12 +80,18 @@ class MyAirZoneDriver extends Driver {
     this.log('MyDriver has been initialized');
 
     let pollingInterval = await this.homey.settings.get('pollingInterval');
+    let requestTimeout = await this.homey.settings.get('requestTimeout');
 
     // If pollingInterval is null or less than 60000 milliseconds, default to 60000 milliseconds
     if (!pollingInterval || pollingInterval < 60000) {
       pollingInterval = 60000; // Default to 60 seconds
       await this.homey.settings.set('pollingInterval', pollingInterval);
     }
+    if (!requestTimeout || requestTimeout < 1000) {
+      requestTimeout = 5000; // Default to 5 seconds
+      await this.homey.settings.set('requestTimeout', requestTimeout);
+    }
+    this.requestTimeout = requestTimeout;
 
     // Initial delayed poll to avoid immediate polling on app start
     this.homey.setTimeout(async () => {
@@ -69,6 +109,81 @@ class MyAirZoneDriver extends Driver {
       this.log('Target temperature change trigger card successfully assigned.');
     } else {
       this.error('Failed to assign target temperature change trigger card.');
+    }
+  }
+
+  async onUninit() {
+    if (this.pollInterval) {
+      this.homey.clearInterval(this.pollInterval);
+      this.pollInterval = null;
+      this.log('Cleared MyAir polling interval on driver unload');
+    }
+    this._inFlightFetch = null;
+  }
+
+  resolveSignalQuality(rssi, zoneType) {
+    const parsedZoneType = Number.parseInt(zoneType, 10);
+    if (parsedZoneType === 0) {
+      return 'No Sensor';
+    }
+
+    const parsedRssi = Number.parseFloat(rssi);
+    if (!Number.isFinite(parsedRssi)) {
+      return 'Unknown';
+    }
+
+    // MyAir reports RSSI as a positive magnitude (e.g. 52, 70, 85).
+    const signal = Math.abs(parsedRssi);
+    if (signal === 0) {
+      return 'Dead';
+    }
+
+    if (signal <= 70) {
+      return 'Excellent';
+    }
+    if (signal <= 80) {
+      return 'Good';
+    }
+    if (signal <= 90) {
+      return 'Poor';
+    }
+    if (signal <= 100) {
+      return 'Weak';
+    }
+    return 'Dead';
+  }
+
+  async syncZoneCapabilities(device, zoneType) {
+    if (device.hasCapability('measure_ventopen') === false) {
+      await device.addCapability('measure_ventopen');
+    }
+    if (device.hasCapability('wifi_signal') === false) {
+      await device.addCapability('wifi_signal');
+    }
+    if (!Number.isFinite(zoneType)) {
+      return;
+    }
+
+    if (zoneType === 0) {
+      if (device.hasCapability('target_ventopen') === false) {
+        await device.addCapability('target_ventopen');
+      }
+      if (device.hasCapability('target_temperature')) {
+        await device.removeCapability('target_temperature');
+      }
+      if (device.hasCapability('measure_temperature')) {
+        await device.removeCapability('measure_temperature');
+      }
+    } else if (zoneType === 1) {
+      if (device.hasCapability('target_ventopen')) {
+        await device.removeCapability('target_ventopen');
+      }
+      if (device.hasCapability('target_temperature') === false) {
+        await device.addCapability('target_temperature');
+      }
+      if (device.hasCapability('measure_temperature') === false) {
+        await device.addCapability('measure_temperature');
+      }
     }
   }
 
@@ -124,6 +239,10 @@ class MyAirZoneDriver extends Driver {
       }
 
       const ipAddress = this.homey.settings.get('myAirIp');
+      if (!ipAddress) {
+        this.log('MyAir IP address not configured; skipping poll.');
+        return;
+      }
       const data = await this.fetchMyAirData(ipAddress);
 
       if (data && data.aircons && data.aircons.ac1 && data.aircons.ac1.zones) {
@@ -139,17 +258,38 @@ class MyAirZoneDriver extends Driver {
 
           if (device) {
             this.log('Updating device state for:', zoneId);
-            // Update device state
-            await device.setCapabilityValue('onoff', zoneInfo.state === 'open');
-            const currentTarget = device.getCapabilityValue('target_temperature');
-            const nextTarget = Number.parseFloat(zoneInfo.setTemp);
-            const resolvedTarget = Number.isFinite(nextTarget) ? nextTarget : zoneInfo.setTemp;
-            if (currentTarget !== resolvedTarget) {
-              await device.setCapabilityValue('target_temperature', resolvedTarget);
-              await this.triggerTargetTemperatureChange(device, resolvedTarget, currentTarget, 'myair');
+            const zoneType = Number.parseInt(zoneInfo.type, 10);
+            const storedZoneType = Number.parseInt(device.getStoreValue('zoneType'), 10);
+            if (Number.isFinite(zoneType) && zoneType !== storedZoneType) {
+              await device.setStoreValue('zoneType', zoneType);
             }
-            await device.setCapabilityValue('measure_temperature', zoneInfo.measuredTemp);
-            await device.setCapabilityValue('measure_ventopen', zoneInfo.value);
+            await this.syncZoneCapabilities(device, zoneType);
+
+            // Update device state
+            if (device.hasCapability('onoff')) {
+              await device.setCapabilityValue('onoff', zoneInfo.state === 'open');
+            }
+            if (device.hasCapability('target_temperature')) {
+              const currentTarget = device.getCapabilityValue('target_temperature');
+              const nextTarget = Number.parseFloat(zoneInfo.setTemp);
+              const resolvedTarget = Number.isFinite(nextTarget) ? nextTarget : zoneInfo.setTemp;
+              if (currentTarget !== resolvedTarget) {
+                await device.setCapabilityValue('target_temperature', resolvedTarget);
+                await this.triggerTargetTemperatureChange(device, resolvedTarget, currentTarget, 'myair');
+              }
+            }
+            if (device.hasCapability('measure_temperature')) {
+              await device.setCapabilityValue('measure_temperature', zoneInfo.measuredTemp);
+            }
+            if (device.hasCapability('measure_ventopen')) {
+              await device.setCapabilityValue('measure_ventopen', zoneInfo.value);
+            }
+            if (device.hasCapability('target_ventopen')) {
+              await device.setCapabilityValue('target_ventopen', zoneInfo.value);
+            }
+            if (device.hasCapability('wifi_signal')) {
+              await device.setCapabilityValue('wifi_signal', this.resolveSignalQuality(zoneInfo.rssi, zoneInfo.type));
+            }
           }
         }
       }
@@ -210,16 +350,26 @@ class MyAirZoneDriver extends Driver {
         const ipAddress = this.homey.settings.get('myAirIp');
         const myAirData = await this.fetchMyAirData(ipAddress);
         const devices = Object.entries(myAirData.aircons.ac1.zones).map(([zoneId, zoneInfo]) => {
+          const zoneType = Number.parseInt(zoneInfo.type, 10);
+          const store = {
+            address: ipAddress,
+          };
+          if (Number.isFinite(zoneType)) {
+            store.zoneType = zoneType;
+          }
+
+          const capabilities = zoneType === 0
+            ? ['onoff', 'measure_ventopen', 'target_ventopen', 'wifi_signal']
+            : ['onoff', 'target_temperature', 'measure_temperature', 'measure_ventopen', 'wifi_signal'];
+
           return {
             name: zoneInfo.name,
             data: { id: zoneId }, // Unique identifier for the device
-            store: {
-              address: ipAddress,
-            },
+            store,
             // Include other properties as needed
             // settings: {...},
             // icon: "/path/to/icon.svg",
-            capabilities: ['onoff', 'target_temperature', 'measure_temperature'],
+            capabilities,
             // capabilitiesOptions: {...},
           };
         });

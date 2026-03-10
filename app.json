@@ -394,7 +394,8 @@
         "onoff",
         "measure_temperature",
         "measure_ventopen",
-        "target_temperature"
+        "target_temperature",
+        "wifi_signal"
       ],
       "platforms": [
         "local"
@@ -506,14 +507,50 @@
     "measure_ventopen": {
       "id": "measure_ventopen",
       "type": "number",
-      "title": "Vent Open",
+      "title": {
+        "en": "Vent Open"
+      },
       "uiComponent": "sensor",
       "getable": true,
-      "setable": true,
+      "setable": false,
       "insights": true,
+      "icon": "/assets/icon.svg",
+      "units": {
+        "en": "%"
+      }
+    },
+    "target_ventopen": {
+      "id": "target_ventopen",
+      "type": "number",
+      "title": {
+        "en": "Vent Control"
+      },
+      "uiComponent": "slider",
+      "getable": true,
+      "setable": true,
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "insights": false,
       "uiQuickAction": true,
       "icon": "/assets/icon.svg",
-      "units": "%"
+      "units": {
+        "en": "%"
+      }
+    },
+    "wifi_signal": {
+      "type": "string",
+      "title": {
+        "en": "Sensor Signal"
+      },
+      "desc": {
+        "en": "Room sensor signal quality"
+      },
+      "uiComponent": "sensor",
+      "getable": true,
+      "setable": false,
+      "insights": true,
+      "icon": "/assets/icon.svg"
     }
   }
 }

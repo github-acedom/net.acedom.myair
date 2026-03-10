@@ -1,12 +1,15 @@
 {
   "id": "measure_ventopen",
   "type": "number",
-  "title": "Vent Open",
+  "title": {
+    "en": "Vent Open"
+  },
   "uiComponent": "sensor",
   "getable": true,
-  "setable": true,
+  "setable": false,
   "insights": true,
-  "uiQuickAction": true,
   "icon": "/assets/icon.svg",
-  "units": "%"
+  "units": {
+    "en": "%"
+  }
 }

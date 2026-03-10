@@ -5,6 +5,14 @@ const { sendCommandToMyAir } = require('../../lib/myAirAPI');
 
 class MyAirControlDevice extends Device {
 
+  mapHomeyModeToMyAir(mode) {
+    if (mode === 'fan' || mode === 'vent') {
+      return 'vent';
+    }
+
+    return mode;
+  }
+
   /**
    * onInit is called when the device is initialized.
    */
@@ -78,25 +86,12 @@ class MyAirControlDevice extends Device {
 
     const ipAddress = this.homey.settings.get('myAirIp');
 
-    // Determine the mode based on the input value
-    // Adjust the logic to match your aircon's supported modes
-    let mode;
-    switch (value) {
-      case 'cool':
-        mode = value;
-        break;
-      case 'heat':
-        mode = value;
-        break;
-      case 'fan': // Assuming these are valid modes for your aircon
-        mode = 'vent'; // Send "vent" when the input value is "dry"
-        break;
-      case 'dry':
-        mode = value;
-        break;
-      default:
-        this.log(`Unsupported mode value: ${value}`);
-        return; // Exit the function if the value is not supported
+    const mode = this.mapHomeyModeToMyAir(value);
+    const supportedModes = ['cool', 'heat', 'dry', 'vent'];
+
+    if (!supportedModes.includes(mode)) {
+      this.log(`Unsupported mode value: ${value}`);
+      return;
     }
 
     // Construct the command for updating the aircon's mode
