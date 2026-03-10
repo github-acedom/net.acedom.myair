@@ -1,0 +1,19 @@
+{
+  "id": "target_ventopen",
+  "type": "number",
+  "title": {
+    "en": "Vent Control"
+  },
+  "uiComponent": "slider",
+  "getable": true,
+  "setable": true,
+  "min": 0,
+  "max": 100,
+  "step": 5,
+  "insights": false,
+  "uiQuickAction": true,
+  "icon": "/assets/icon.svg",
+  "units": {
+    "en": "%"
+  }
+}

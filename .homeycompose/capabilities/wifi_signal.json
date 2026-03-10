@@ -1,0 +1,14 @@
+{
+  "type": "string",
+  "title": {
+    "en": "Sensor Signal"
+  },
+  "desc": {
+    "en": "Room sensor signal quality"
+  },
+  "uiComponent": "sensor",
+  "getable": true,
+  "setable": false,
+  "insights": true,
+  "icon": "/assets/icon.svg"
+}
