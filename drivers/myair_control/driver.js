@@ -85,16 +85,6 @@ class MyAirControlDriver extends Driver {
     // Cache request timeout for all calls
     this.requestTimeout = requestTimeout;
 
-    // Initial delayed poll to avoid immediate polling on app start
-    this.homey.setTimeout(async () => {
-      await this.pollMyAirData();
-    }, 10000); // Delay of 10000 milliseconds (10 seconds)
-
-    // Set up the polling interval
-    this.pollInterval = this.homey.setInterval(async () => {
-      await this.pollMyAirData();
-    }, pollingInterval);
-
     // Initialize the trigger card for mode change
     this._modeChangeTrigger = this.homey.flow.getDeviceTriggerCard('mode_changed');
     if (this._modeChangeTrigger) {
@@ -143,6 +133,14 @@ class MyAirControlDriver extends Driver {
     }
 
     this.log('MyDriver has been initialized');
+
+    // Poll immediately so the UI has a current state on first open.
+    await this.pollMyAirData();
+
+    // Set up the recurring polling interval after the initial refresh.
+    this.pollInterval = this.homey.setInterval(async () => {
+      await this.pollMyAirData();
+    }, pollingInterval);
   }
 
   async onUninit() {
@@ -288,8 +286,7 @@ class MyAirControlDriver extends Driver {
             store: {
               address: ipAddress,
             },
-            capabilities: ['onoff'], // Include relevant capabilities for the control unit
-            // You can add additional properties like settings, icon, capabilitiesOptions, etc.
+            capabilities: ['onoff', 'aircon_mode', 'aircon_fan'],
           }];
         }
         this.log('No MyAir Control Unit data available');
