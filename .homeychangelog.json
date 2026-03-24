@@ -55,5 +55,8 @@
   },
   "1.4.0": {
     "en": "This update fixes fan mode so it is shown correctly in Homey and no longer causes mode errors. It also improves zone support by separating vent status from vent control, adding vent percentage control for supported zones, and showing room sensor signal quality. Zone devices now set themselves up more accurately based on their type, and polling has been made more reliable during startup and regular updates."
+  },
+  "1.4.1": {
+    "en": "Security bumps, minor updates and fixes"
   }
 }
