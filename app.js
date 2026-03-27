@@ -1,15 +1,43 @@
 'use strict';
 
 const Homey = require('homey');
-// const { sendCommandToMyAir } = require('./lib/myAirAPI');
+
+const DEFAULT_RETRY_COUNT = 1;
+const DEFAULT_RETRY_DELAY_MS = 500;
 
 class MyApp extends Homey.App {
+
+  async ensureDefaultSetting(key, defaultValue, isValid) {
+    const currentValue = await this.homey.settings.get(key);
+    if (isValid(currentValue)) {
+      return;
+    }
+
+    await this.homey.settings.set(key, defaultValue);
+  }
+
+  async reportCommunicationFailure(source, errorMessage) {
+    try {
+      const controlDriver = this.homey.drivers.getDriver('myair_control');
+      if (!controlDriver || typeof controlDriver.reportCommunicationFailure !== 'function') {
+        this.log(`Communication failure reported (${source}) but the control driver is unavailable.`);
+        return;
+      }
+
+      await controlDriver.reportCommunicationFailure(source, errorMessage);
+    } catch (error) {
+      this.error('Failed to route communication failure to the control driver:', error);
+    }
+  }
 
   /**
    * onInit is called when the app is initialized.
    */
   async onInit() {
     this.log('MyApp has been initialized');
+
+    await this.ensureDefaultSetting('retryCount', DEFAULT_RETRY_COUNT, (value) => Number.isInteger(value) && value >= 0);
+    await this.ensureDefaultSetting('retryDelayMs', DEFAULT_RETRY_DELAY_MS, (value) => Number.isInteger(value) && value >= 0);
 
     // Registering the flow action listener for setting aircon mode
     try {

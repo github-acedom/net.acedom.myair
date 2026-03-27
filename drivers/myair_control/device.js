@@ -107,7 +107,7 @@ class MyAirControlDevice extends Device {
     const command = `/setAircon?json=${encodedCommand}`;
 
     try {
-      await sendCommandToMyAir(ipAddress, command, this.log.bind(this));
+      await sendCommandToMyAir(ipAddress, command, this.log.bind(this), this.homey);
       this.log(`Set aircon mode to ${mode}`);
     } catch (error) {
       this.error('Failed to set aircon mode:', error && error.message ? error.message : error);
@@ -160,7 +160,7 @@ class MyAirControlDevice extends Device {
     const command = `/setAircon?json=${encodedCommand}`;
 
     try {
-      await sendCommandToMyAir(ipAddress, command, this.log.bind(this));
+      await sendCommandToMyAir(ipAddress, command, this.log.bind(this), this.homey);
       this.log(`Set aircon fan mode to ${fanMode}`);
     } catch (error) {
       this.error('Failed to set aircon fan mode:', error && error.message ? error.message : error);
@@ -188,7 +188,7 @@ class MyAirControlDevice extends Device {
     const command = `/setAircon?json=${encodedCommand}`;
 
     try {
-      await sendCommandToMyAir(ipAddress, command, this.log.bind(this));
+      await sendCommandToMyAir(ipAddress, command, this.log.bind(this), this.homey);
       this.log(`Set aircon state to ${value ? 'on' : 'off'}`);
     } catch (error) {
       this.error('Failed to set aircon state:', error && error.message ? error.message : error);
