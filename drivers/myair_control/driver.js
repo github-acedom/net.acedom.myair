@@ -2,6 +2,9 @@
 
 const { Driver } = require('homey');
 const http = require('http');
+const { fetchMyAirData: fetchMyAirDataRequest } = require('../../lib/myAirAPI');
+
+const COMMUNICATION_FAILURE_INTERVAL_MS = 60 * 60 * 1000;
 
 class MyAirControlDriver extends Driver {
 
@@ -15,52 +18,106 @@ class MyAirControlDriver extends Driver {
 
   async fetchMyAirData(ipAddress) {
     const timeout = this.requestTimeout || 5000;
-    return new Promise((resolve, reject) => {
-      if (!ipAddress) {
-        return reject(new Error('MyAir IP address is not configured'));
+    return fetchMyAirDataRequest(this.homey, ipAddress, timeout, this.log.bind(this));
+  }
+
+  getCommunicationFailureState(device) {
+    const deviceId = device.getData().id;
+    if (!this._communicationFailureStates) {
+      this._communicationFailureStates = new Map();
+    }
+
+    if (!this._communicationFailureStates.has(deviceId)) {
+      this._communicationFailureStates.set(deviceId, {
+        lastTriggeredAt: 0,
+        counts: {
+          polling: 0,
+          command: 0,
+        },
+        lastError: '',
+      });
+    }
+
+    return this._communicationFailureStates.get(deviceId);
+  }
+
+  buildCommunicationFailureSummary(counts) {
+    const parts = [];
+
+    if (counts.polling > 0) {
+      parts.push(`${counts.polling} polling failure${counts.polling === 1 ? '' : 's'}`);
+    }
+
+    if (counts.command > 0) {
+      parts.push(`${counts.command} command failure${counts.command === 1 ? '' : 's'}`);
+    }
+
+    if (parts.length === 0) {
+      return '0 failures this period';
+    }
+
+    return `${parts.join(', ')} this period`;
+  }
+
+  async triggerCommunicationFailure(device, source, state) {
+    if (!this._communicationFailureTrigger) {
+      this._communicationFailureTrigger = this.homey.flow.getDeviceTriggerCard('communication_failure');
+    }
+
+    if (!this._communicationFailureTrigger) {
+      this.error('Communication failure trigger card is unavailable.');
+      return;
+    }
+
+    const failureCount = state.counts.polling + state.counts.command;
+    const tokens = {
+      source,
+      failure_count: failureCount,
+      summary: this.buildCommunicationFailureSummary(state.counts),
+      last_error: state.lastError,
+    };
+    const triggerState = {
+      source,
+      failure_count: failureCount,
+      summary: tokens.summary,
+      last_error: state.lastError,
+    };
+
+    try {
+      await this._communicationFailureTrigger.trigger(device, tokens, triggerState);
+      this.log(`Triggered communication failure flow for ${device.getName()}: ${tokens.summary}`);
+    } catch (error) {
+      this.error(`Failed to trigger communication failure flow for ${device.getName()}: ${error.message}`);
+    }
+  }
+
+  async reportCommunicationFailure(source, errorMessage) {
+    const normalizedSource = source === 'command' ? 'command' : 'polling';
+    const devices = this.getDevices();
+    if (devices.length === 0) {
+      this.log(`Communication failure reported (${normalizedSource}) but no control devices are paired.`);
+      return;
+    }
+
+    const now = Date.now();
+
+    for (const device of devices) {
+      const state = this.getCommunicationFailureState(device);
+      state.counts[normalizedSource] += 1;
+      state.lastError = errorMessage || 'Unknown error';
+
+      if (state.lastTriggeredAt && now - state.lastTriggeredAt < COMMUNICATION_FAILURE_INTERVAL_MS) {
+        this.log(`Suppressing communication failure trigger for ${device.getName()} until the one-hour window expires.`);
+        continue;
       }
-      const options = {
-        hostname: ipAddress,
-        port: 2025,
-        path: '/getSystemData',
-        method: 'GET',
-        timeout, // fail fast if the controller is unreachable
+
+      state.lastTriggeredAt = now;
+      await this.triggerCommunicationFailure(device, normalizedSource, state);
+      state.counts = {
+        polling: 0,
+        command: 0,
       };
-
-      const req = http.request(options, (res) => {
-        let data = '';
-
-        res.on('data', (chunk) => {
-          data += chunk;
-        });
-
-        res.on('end', () => {
-          try {
-            if (res.statusCode < 200 || res.statusCode >= 300) {
-              const snippet = data ? ` Body: ${data.slice(0, 200)}` : '';
-              this.error(`MyAir responded with status ${res.statusCode}.${snippet}`);
-              return reject(new Error(`MyAir responded with status ${res.statusCode}`));
-            }
-            const parsedData = JSON.parse(data);
-            resolve(parsedData);
-          } catch (error) {
-            reject(new Error(`Error parsing MyAir data: ${error.message}`));
-          }
-          return undefined;
-        });
-      });
-
-      req.on('error', (error) => {
-        reject(new Error(`Error fetching MyAir data: ${error.message}`));
-      });
-
-      req.on('timeout', () => {
-        req.destroy(new Error('MyAir data request timed out'));
-      });
-
-      req.end();
-      return undefined;
-    });
+    }
   }
 
   /**
@@ -132,6 +189,14 @@ class MyAirControlDriver extends Driver {
       this.error('Failed to assign fan speed condition card.');
     }
 
+    this._communicationFailureTrigger = this.homey.flow.getDeviceTriggerCard('communication_failure');
+    this._communicationFailureStates = new Map();
+    if (this._communicationFailureTrigger) {
+      this.log('Communication failure trigger card successfully assigned.');
+    } else {
+      this.error('Failed to assign communication failure trigger card.');
+    }
+
     this.log('MyDriver has been initialized');
 
     // Poll immediately so the UI has a current state on first open.
@@ -149,6 +214,7 @@ class MyAirControlDriver extends Driver {
       this.pollInterval = null;
       this.log('Cleared MyAir polling interval on driver unload');
     }
+    this._communicationFailureStates = new Map();
   }
 
   // Method to trigger the mode change flow

@@ -2,75 +2,13 @@
 
 const { Driver } = require('homey');
 const http = require('http');
+const { fetchMyAirData: fetchMyAirDataRequest } = require('../../lib/myAirAPI');
 
 class MyAirZoneDriver extends Driver {
 
   async fetchMyAirData(ipAddress) {
     const timeout = this.requestTimeout || 5000;
-    if (!ipAddress) {
-      throw new Error('MyAir IP address is not configured');
-    }
-
-    // Multiple zone devices can call this during startup; share one in-flight request.
-    if (this._inFlightFetch && this._inFlightFetch.ipAddress === ipAddress) {
-      return this._inFlightFetch.promise;
-    }
-
-    const fetchPromise = new Promise((resolve, reject) => {
-      const options = {
-        hostname: ipAddress,
-        port: 2025,
-        path: '/getSystemData',
-        method: 'GET',
-        timeout,
-      };
-
-      const req = http.request(options, (res) => {
-        let data = '';
-
-        res.on('data', (chunk) => {
-          data += chunk;
-        });
-
-        res.on('end', () => {
-          try {
-            if (res.statusCode < 200 || res.statusCode >= 300) {
-              const snippet = data ? ` Body: ${data.slice(0, 200)}` : '';
-              this.error(`MyAir responded with status ${res.statusCode}.${snippet}`);
-              return reject(new Error(`MyAir responded with status ${res.statusCode}`));
-            }
-            const parsedData = JSON.parse(data);
-            resolve(parsedData);
-          } catch (error) {
-            reject(new Error(`Error parsing MyAir data: ${error.message}`));
-          }
-          return undefined;
-        });
-      });
-
-      req.on('error', (error) => {
-        reject(new Error(`Error fetching MyAir data: ${error.message}`));
-      });
-
-      req.on('timeout', () => {
-        req.destroy(new Error('MyAir data request timed out'));
-      });
-
-      req.end();
-    });
-
-    this._inFlightFetch = {
-      ipAddress,
-      promise: fetchPromise,
-    };
-
-    try {
-      return await fetchPromise;
-    } finally {
-      if (this._inFlightFetch && this._inFlightFetch.promise === fetchPromise) {
-        this._inFlightFetch = null;
-      }
-    }
+    return fetchMyAirDataRequest(this.homey, ipAddress, timeout, this.log.bind(this));
   }
 
   /**
@@ -118,7 +56,6 @@ class MyAirZoneDriver extends Driver {
       this.pollInterval = null;
       this.log('Cleared MyAir polling interval on driver unload');
     }
-    this._inFlightFetch = null;
   }
 
   resolveSignalQuality(rssi, zoneType) {

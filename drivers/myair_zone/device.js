@@ -178,7 +178,7 @@ class MyAirZoneDevice extends Device {
     const command = `/setAircon?json=${encodedCommand}`;
 
     try {
-      await sendCommandToMyAir(ipAddress, command, this.log.bind(this));
+      await sendCommandToMyAir(ipAddress, command, this.log.bind(this), this.homey);
       this.log(`Set target temperature for zone ${zoneId} to ${value}`);
       const driver = this.driver || this.homey.drivers.getDriver('myair_zone');
       if (driver && driver.triggerTargetTemperatureChange) {
@@ -216,7 +216,7 @@ class MyAirZoneDevice extends Device {
     const command = `/setAircon?json=${encodedCommand}`;
 
     try {
-      await sendCommandToMyAir(ipAddress, command, this.log.bind(this));
+      await sendCommandToMyAir(ipAddress, command, this.log.bind(this), this.homey);
       this.log(`Set zone ${zoneId} to ${value ? 'open' : 'close'}`);
     } catch (error) {
       this.error('Failed to set zone state:', error);
@@ -254,7 +254,7 @@ class MyAirZoneDevice extends Device {
     const command = `/setAircon?json=${encodedCommand}`;
 
     try {
-      await sendCommandToMyAir(ipAddress, command, this.log.bind(this));
+      await sendCommandToMyAir(ipAddress, command, this.log.bind(this), this.homey);
       this.log(`Set zone ${zoneId} vent opening to ${normalizedValue}%`);
     } catch (error) {
       this.error('Failed to set zone vent opening:', error);

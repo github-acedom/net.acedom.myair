@@ -1,0 +1,45 @@
+{
+  "title": {
+    "en": "Communication with aircon failed"
+  },
+  "titleFormatted": {
+    "en": "Communication with aircon failed"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=myair_control"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "source",
+      "type": "string",
+      "title": {
+        "en": "Source"
+      }
+    },
+    {
+      "name": "failure_count",
+      "type": "number",
+      "title": {
+        "en": "Failure count"
+      }
+    },
+    {
+      "name": "summary",
+      "type": "string",
+      "title": {
+        "en": "Summary"
+      }
+    },
+    {
+      "name": "last_error",
+      "type": "string",
+      "title": {
+        "en": "Last error"
+      }
+    }
+  ]
+}
