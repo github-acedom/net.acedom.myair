@@ -58,5 +58,8 @@
   },
   "1.4.1": {
     "en": "Security bumps, minor updates and fixes"
+  },
+  "1.5.0": {
+    "en": "Added new reliability settings for myAir communication. You can now enable command throttling, adjust retry count and retry delay in Settings, and use a new Flow trigger when communication with the aircon fails."
   }
 }
